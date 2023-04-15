@@ -452,15 +452,158 @@ NoSQL-бази даних порівняно з реляційними база�
 
 **58. Реалізувати алгоритм двійкового пошуку елемента у слайсі.**
 
+```
+package main
+
+import "fmt"
+
+func binarySearch(arr []int, key int) int {
+    low, high := 0, len(arr)-1
+    for low <= high {
+        mid := low + (high-low)/2
+        if arr[mid] == key {
+            return mid
+        } else if arr[mid] > key {
+            high = mid - 1
+        } else {
+            low = mid + 1
+        }
+    }
+    return -1
+}
+
+func main() {
+    arr := []int{1, 3, 5, 7, 9, 11, 13}
+    key := 7
+    result := binarySearch(arr, key)
+    if result == -1 {
+        fmt.Printf("Елемент %d не знайдено у слайсі\n", key)
+    } else {
+        fmt.Printf("Елемент %d знайдено у позиції %d\n", key, result)
+    }
+}
+```
+
 **59. Є [код](https://play.golang.org/p/a-JIesxdCQ7). Що виведеться на екран? Що потрібно зробити, щоб побачити запропонований висновок Foo1 і Foo2?**
+
+```
+// start
+// end
+
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	fmt.Println("start")
+	c := make(chan int)
+	go Foo1(c)
+	go Foo2(c)
+	fmt.Println("end")
+	<-c
+	c <- 1
+}
+
+func Foo1(c chan int) {
+	fmt.Println("foo1 begin")
+	c <- 1
+	fmt.Println("foo1 end")
+}
+
+func Foo2(c chan int) {
+	fmt.Println("foo2 begin")
+	<-c
+	fmt.Println("foo2 end")
+}
+```
 
 **60. Є [код](https://play.golang.org/p/6CiZvQp7r3t). Що виведеться на екран? Як вивести на екран літери?**
 
+```
+// 0 1 2
+
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	arr := []string{"a", "b", "c"}
+
+	for _, x := range arr {
+		fmt.Println(x)
+	}
+}
+```
+
 **61. Поміняйте місцями значення двох змінних без тимчасової допоміжної змінної.**
+
+```
+package main
+
+import "fmt"
+
+func main() {
+	a := 1
+	b := 2
+	fmt.Printf("a: %d, b: %d\n", a, b)
+	a, b = b, a
+	fmt.Printf("a: %d, b: %d\n", a, b)
+}
+```
 
 **62. Оберніть slice у зворотному порядку.**
 
+```
+package main
+
+import (
+	"fmt"
+)
+
+func reverse(s []int) []int {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+	return s
+}
+
+func main() {
+	s := []int{1, 2, 3, 4, 5}
+	fmt.Println(s) // [1 2 3 4 5]
+	s = reverse(s)
+	fmt.Println(s) // [5 4 3 2 1]
+}
+```
+
 **63. Перемістіть усі zero values у кінець масиву.**
+
+```
+package main
+
+import (
+	"fmt"
+)
+
+func moveZeroes(nums []int) {
+	z := 0
+	for i := 0; i < len(nums); i++ {
+		if nums[i] != 0 {
+			nums[i], nums[z] = nums[z], nums[i]
+			z++
+		}
+	}
+}
+
+func main() {
+	nums := []int{0, 1, 0, 3, 12}
+	moveZeroes(nums)
+	fmt.Println(nums) // [1 3 12 0 0]
+}
+```
 
 ## Middle
 

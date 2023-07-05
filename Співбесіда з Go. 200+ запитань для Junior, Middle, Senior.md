@@ -2257,9 +2257,9 @@ Race condition виникає, коли два або більше потоки 
 
 2. Ретельний огляд коду для виявлення місць, де можуть виникати конфлікти при одночасному доступі до спільних даних. Це може включати аналіз місць, де виконуються операції зміни або зчитування даних, а також деякі шаблони програмування, такі як блокування та синхронізація.
 
-Щоб уникнути race condition і забезпечити правильну роботу програми, можна використовувати такі підходи:
+Щоб уникнути race condition можна використовувати такі підходи:
 
-1. Синхронізація за допомогою механізмів синхронізації, таких як mutex, для захисту спільних даних від одночасного доступу. Це дозволяє гарантувати, що тільки один потік або горутина може змінювати дані в один момент часу.
+1. Синхронізація за допомогою механізмів, таких як mutex, для захисту спільних даних від одночасного доступу. Це дозволяє гарантувати, що тільки один потік або горутина може змінювати дані в один момент часу.
 
 2. Використання каналів для передачі даних між потоками або горутинами. Канали автоматично забезпечують синхронізацію та безпеку доступу до даних.
 
@@ -2271,20 +2271,255 @@ Race condition виникає, коли два або більше потоки 
 
 **67. Реалізувати перевірку на слова на анаграму. Написати тест і бенчмарк. Оцінити складність розробленого алгоритму.**
 
+```
+import (
+	"sort"
+	"strings"
+)
+
+// Функція для перевірки, чи є два слова анаграмами
+func AreAnagrams(word1, word2 string) bool {
+	// Переводимо слова у нижній регістр
+	word1 = strings.ToLower(word1)
+	word2 = strings.ToLower(word2)
+
+	// Перевіряємо, чи мають слова однакову кількість символів
+	if len(word1) != len(word2) {
+		return false
+	}
+
+	// Сортуємо символи у словах за алфавітом
+	sortedWord1 := sortString(word1)
+	sortedWord2 := sortString(word2)
+
+	// Перевіряємо, чи відсортовані слова рівні
+	return sortedWord1 == sortedWord2
+}
+
+// Функція для сортування символів у рядку
+func sortString(s string) string {
+	characters := strings.Split(s, "")
+	sort.Strings(characters)
+	return strings.Join(characters, "")
+}
+```
+
+```
+import "testing"
+
+func TestAreAnagrams(t *testing.T) {
+	// Тестові дані
+	tests := []struct {
+		word1    string
+		word2    string
+		expected bool
+	}{
+		{"listen", "silent", true},
+		{"triangle", "integral", true},
+		{"hello", "world", false},
+	}
+
+	// Проходимося по тестовим даним і перевіряємо результат
+	for _, test := range tests {
+		result := AreAnagrams(test.word1, test.word2)
+		if result != test.expected {
+			t.Errorf("Expected %v, but got %v for words %s and %s",
+				test.expected, result, test.word1, test.word2)
+		}
+	}
+}
+```
+
+Щодо складності розробленого алгоритму, він має складність O(n log n) через використання сортування символів у словах.
+
 **68. Є [код](https://play.golang.org/p/-3o2gp3enIG). Що виведеться на екран? Чому?**
+
+```
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	a := []int{}
+	a = append(a, 1)
+	a = append(a, 2)
+	a = append(a, 3)
+	Add(a)
+	fmt.Println(a)
+}
+
+func Add(a []int) {
+	a = append(a, 4)
+}
+```
+
+Буде виведено ``[1 2 3]``, оскільки при додаванні у слайс всередені функції ``Add()`` змінюється вказівник на область даних у метаданих слайсу, тобто ми отримуємо новий слайс, а вихідний слайс не змінюється.
 
 **69. Є [код](https://play.golang.org/p/qwC_nJNFdEy). Чи можна передбачити, що виведеться на екран? Чому?**
 
+```
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+var c = make(chan *int, 3)
+var data = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+
+func main() {
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go save(&wg)
+	go read(&wg)
+
+	wg.Wait()
+}
+
+func save(wg *sync.WaitGroup) {
+	defer wg.Done()
+	for _, val := range data {
+		c <- &val
+	}
+}
+
+func read(wg *sync.WaitGroup) {
+	defer wg.Done()
+	for i := 0; i < len(data); i++ {
+		val := <-c
+		fmt.Println("read:", *val)
+	}
+}
+```
+
+Результат буде непередбачуваним, оскільки функції ``save`` та ``read`` асинхронні, порядок та час виконання не детерміновані.
+
 **70. Реалізуйте Stack (LIFO).**
 
+```
+package main
+
+import "fmt"
+
+type Stack struct {
+    data []interface{}
+}
+
+func (s *Stack) Push(item interface{}) {
+    s.data = append(s.data, item)
+}
+
+func (s *Stack) Pop() interface{} {
+    if s.IsEmpty() {
+        return nil
+    }
+    item := s.data[len(s.data)-1]
+    s.data = s.data[:len(s.data)-1]
+    return item
+}
+
+func (s *Stack) IsEmpty() bool {
+    return len(s.data) == 0
+}
+
+func main() {
+    stack := Stack{}
+    stack.Push(1)
+    stack.Push(2)
+    stack.Push(3)
+
+    for !stack.IsEmpty() {
+        fmt.Println(stack.Pop())
+    }
+}
+```
+
 **71. Реалізуйте linked list.**
+
+```
+package main
+
+import "fmt"
+
+type Node struct {
+    value interface{}
+    next  *Node
+}
+
+type LinkedList struct {
+    head *Node
+}
+
+func (ll *LinkedList) Insert(value interface{}) {
+    newNode := &Node{
+        value: value,
+        next:  ll.head,
+    }
+    ll.head = newNode
+}
+
+func (ll *LinkedList) Traverse() {
+    currentNode := ll.head
+    for currentNode != nil {
+        fmt.Println(currentNode.value)
+        currentNode = currentNode.next
+    }
+}
+
+func main() {
+    list := LinkedList{}
+    list.Insert(3)
+    list.Insert(2)
+    list.Insert(1)
+
+    list.Traverse()
+}
+```
 
 **72. Задача про суму підмножини (Subset Sum Problem). Дано: множина позитивних цілих чисел і значення sum. Визначте, чи існує підмножина даної множини з сумою, яка дорівнює значенню sum.**
 
 ```
-Input: set [] = {3, 34, 4, 12, 5, 2}, sum = 9
-Output: True
+package main
+
+import "fmt"
+
+func subsetSum(nums []int, sum int, idx int) bool {
+	if sum == 0 {
+		return true
+	}
+
+	if idx < 0 {
+		return false
+	}
+
+	if nums[idx] > sum {
+		return subsetSum(nums, sum, idx-1)
+	}
+
+	include := subsetSum(nums, sum-nums[idx], idx-1)
+	exclude := subsetSum(nums, sum, idx-1)
+
+	return include || exclude
+}
+
+func main() {
+	nums := []int{3, 34, 4, 12, 5, 2}
+	sum := 9
+
+	if subsetSum(nums, sum, len(nums)-1) {
+		fmt.Printf("Підмножина з сумою %d існує.", sum)
+	} else {
+		fmt.Printf("Підмножини з сумою %d не існує.", sum)
+	}
+}
+
 ```
+
+Складність цього рекурсивного алгоритму зі зворотним ходом є експоненційною.
 
 ## Senior
 
